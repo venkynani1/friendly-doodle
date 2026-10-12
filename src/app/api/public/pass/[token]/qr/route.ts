@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { normalizeQrToken } from "@/lib/tokens";
 import { notFound, route } from "@/lib/api";
 import { qrPng } from "@/lib/qr";
 
@@ -6,7 +7,7 @@ type Ctx = { params: Promise<{ token: string }> };
 
 export const GET = route<Ctx>(async (req, { params }) => {
   const { token } = await params;
-  const reg = await prisma.registration.findUnique({ where: { qrToken: token }, select: { qrToken: true, employeeId: true } });
+  const reg = await prisma.registration.findUnique({ where: { qrToken: normalizeQrToken(token) }, select: { qrToken: true, employeeId: true } });
   if (!reg) throw notFound("We couldn't find this pass.");
   const png = await qrPng(reg.qrToken);
   const download = new URL(req.url).searchParams.get("download") === "1";

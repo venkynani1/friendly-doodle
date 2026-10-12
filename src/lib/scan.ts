@@ -2,12 +2,13 @@ import type { Stage } from "@prisma/client";
 import { prisma } from "./db";
 import { ApiError, conflict, isUniqueViolation } from "./api";
 import { enabledStages } from "./events";
+import { normalizeQrToken } from "./tokens";
 
 const STAGE_LABEL: Record<Stage, string> = { ENTRY: "Entry", FOOD: "Food", GOODIES: "Goodies" };
 
 async function loadPass(qrToken: string) {
   const reg = await prisma.registration.findUnique({
-    where: { qrToken },
+    where: { qrToken: normalizeQrToken(qrToken) },
     include: { event: true, scans: { orderBy: { scannedAt: "asc" } } },
   });
   if (!reg) throw new ApiError(404, "INVALID_QR", "This QR code isn't a valid event pass.");

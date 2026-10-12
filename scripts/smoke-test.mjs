@@ -122,7 +122,7 @@ async function main() {
   const pass1 = r1.data.pass;
   assert.equal(pass1.employeeId, `E${uid}1`, "employee ID upper-cased");
   assert.equal(pass1.employeeEmail, `asha.${uid.toLowerCase()}@example.com`, "email lower-cased");
-  assert.ok(pass1.qrToken.length >= 20);
+  assert.match(pass1.qrToken, /^[0-9A-HJKMNP-TV-Z]{5}(-[0-9A-HJKMNP-TV-Z]{5}){3}$/, "readable grouped token");
   assert.ok(["LOGGED", "SENT"].includes(pass1.emailStatus), `email status ${pass1.emailStatus}`);
   ok("participant registered and got a QR pass");
 
@@ -169,6 +169,11 @@ async function main() {
   expectStatus(await scan(pass1.qrToken, "GOODIES"), 201, "goodies");
   ok("goodies accepted");
   expectCode(await scan("not-a-real-token-123", "ENTRY"), 404, "INVALID_QR", "invalid qr");
+  const typed = pass1.qrToken.toLowerCase().replace(/-/g, " ").replace(/0/g, "o").replace(/1/g, "l");
+  const looked = await scanner.post("/api/scan/validate", { qrToken: typed, eventId: ev.id });
+  expectStatus(looked, 200, "typed token lookup");
+  assert.equal(looked.data.participant.employeeId, pass1.employeeId);
+  ok("hand-typed token (lowercase, spaces, O for 0, l for 1) still matches");
   ok("unknown QR rejected");
 
   // Race: five desks scan the same pass at the same moment.

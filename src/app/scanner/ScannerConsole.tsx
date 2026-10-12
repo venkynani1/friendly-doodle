@@ -288,7 +288,7 @@ export default function ScannerConsole() {
           <Input
             value={manual}
             onChange={(e) => setManual(e.target.value)}
-            placeholder="Or type / paste the token"
+            placeholder="Or type the token, e.g. 7KQ2M-XB9RT-…"
             aria-label="QR token"
             autoComplete="off"
             autoCapitalize="none"

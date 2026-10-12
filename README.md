@@ -24,7 +24,7 @@ It's one Next.js app (pages + API) on **Vercel** with **Neon Postgres**. There i
 | Capacity covers registrations + walk-ins | Event row is locked while counting, so a burst of sign-ups can't overshoot |
 | Registration only inside its window and while open; walk-ins only while enabled, open and before their close time | Checked on every sign-up |
 | Scans only while the event is open for scanning, only for its enabled counters, and only for passes of the chosen event | Checked on scan |
-| QR tokens are random 128-bit values | Can't be guessed or enumerated |
+| QR tokens are random 100-bit values like `7KQ2M-XB9RT-4HNCV-8EWPA`, with no look-alike characters | Can't be guessed; easy to read out if a camera can't scan. Typing is forgiving: case, spaces and dashes don't matter |
 
 ## Deploy (about 15 minutes)
 

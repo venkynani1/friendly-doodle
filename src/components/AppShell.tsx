@@ -28,7 +28,7 @@ export default function AppShell({ user, children, wide }: { user: { name: strin
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-20 border-b border-line bg-surface/95 backdrop-blur">
-        <div className={cx("mx-auto flex items-center gap-4 px-4 py-3 sm:px-6", wide ? "max-w-7xl" : "max-w-6xl")}>
+        <div className={cx("mx-auto flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:flex-nowrap sm:px-6", wide ? "max-w-7xl" : "max-w-6xl")}>
           <Link href={user.role === "HR_ADMIN" ? "/admin" : "/scanner"} className="flex items-center gap-2.5 font-display text-[17px] font-extrabold">
             <span className="grid size-8 place-items-center rounded-lg bg-lanyard text-white" aria-hidden>
               <svg viewBox="0 0 20 20" className="size-4" fill="currentColor">
@@ -39,9 +39,10 @@ export default function AppShell({ user, children, wide }: { user: { name: strin
                 <rect x="15" y="15" width="3" height="3" />
               </svg>
             </span>
-            <span className="hidden sm:inline">Maverick Events</span>
+            <span>Maverick Events</span>
           </Link>
-          <nav className="flex flex-1 gap-1 overflow-x-auto" aria-label="Main">
+          {nav.length > 0 && (
+          <nav className="order-last -mx-1 flex w-full gap-1 overflow-x-auto sm:order-none sm:mx-0 sm:w-auto sm:flex-1" aria-label="Main">
             {nav.map((n) => (
               <Link
                 key={n.href}
@@ -56,7 +57,8 @@ export default function AppShell({ user, children, wide }: { user: { name: strin
               </Link>
             ))}
           </nav>
-          <div className="flex items-center gap-3">
+          )}
+          <div className="ml-auto flex items-center gap-3">
             <span className="hidden text-right text-sm leading-tight md:block">
               <span className="block font-semibold">{user.name}</span>
               <span className="text-muted">{user.employeeCode}</span>
