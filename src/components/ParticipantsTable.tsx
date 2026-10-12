@@ -129,7 +129,7 @@ export default function ParticipantsTable({ eventId, refreshKey }: { eventId: st
                       <div className="text-[13px] text-muted">Registered {fmtDateTime(r.registeredAt)}</div>
                     </td>
                     {data.stages.map((s) => (
-                      <td key={s} className="px-3 py-3 tabular-nums">
+                      <td key={s} className="whitespace-nowrap px-3 py-3 tabular-nums">
                         {r.scans[s] ? (
                           <span className="font-semibold" style={{ color: stageColor[s] }}>
                             {fmtTime(r.scans[s])}
