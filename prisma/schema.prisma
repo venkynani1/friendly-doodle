@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  HR_ADMIN
+  SCANNER_OPERATOR
+}
+
+enum EventStatus {
+  DRAFT
+  OPEN
+  COMPLETED
+}
+
+enum Stage {
+  ENTRY
+  FOOD
+  GOODIES
+}
+
+enum RegistrationSource {
+  NORMAL
+  WALKIN
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  LOGGED
+  FAILED
+}
+
+model StaffUser {
+  id           String   @id @default(cuid())
+  employeeCode String   @unique
+  name         String
+  passwordHash String
+  role         Role
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  eventsCreated Event[] @relation("EventCreatedBy")
+  scans         Scan[]
+}
+
+model Event {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  venue       String
+  startsAt    DateTime
+  endsAt      DateTime?
+  capacity    Int?
+  status      EventStatus @default(DRAFT)
+
+  foodEnabled    Boolean @default(false)
+  goodiesEnabled Boolean @default(false)
+
+  registrationSlug     String    @unique
+  registrationOpen     Boolean   @default(true)
+  registrationOpensAt  DateTime?
+  registrationClosesAt DateTime?
+
+  walkinsEnabled Boolean   @default(false)
+  walkinSlug     String    @unique
+  walkinOpen     Boolean   @default(true)
+  walkinClosesAt DateTime?
+
+  createdById String?
+  createdBy   StaffUser? @relation("EventCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  registrations Registration[]
+  scans         Scan[]
+}
+
+model Registration {
+  id            String             @id @default(cuid())
+  eventId       String
+  event         Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  employeeId    String
+  employeeName  String
+  employeeEmail String
+  deviceToken   String?
+  source        RegistrationSource
+  qrToken       String             @unique
+  emailStatus   EmailStatus        @default(PENDING)
+  emailError    String?
+  createdAt     DateTime           @default(now())
+
+  scans Scan[]
+
+  @@unique([eventId, employeeId])
+  @@unique([eventId, employeeEmail])
+  @@unique([eventId, deviceToken])
+  @@index([eventId, createdAt])
+}
+
+model Scan {
+  id             String       @id @default(cuid())
+  registrationId String
+  registration   Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  eventId        String
+  event          Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  stage          Stage
+  locationName   String?
+  scannedById    String?
+  scannedBy      StaffUser?   @relation(fields: [scannedById], references: [id], onDelete: SetNull)
+  scannedAt      DateTime     @default(now())
+
+  // One scan per stage per pass: the database itself blocks duplicates,
+  // even when two gates scan the same QR at the same moment.
+  @@unique([registrationId, stage])
+  @@index([eventId, scannedAt])
+}

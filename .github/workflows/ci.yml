@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: event_control
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/event_control
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/event_control
+      SESSION_SECRET: ci-only-session-secret-0123456789abcdef
+      BOOTSTRAP_ADMIN_CODE: HR001
+      BOOTSTRAP_ADMIN_PASSWORD: ci-admin-password
+      APP_URL: http://localhost:3000
+      APP_TIMEZONE: Asia/Kolkata
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+      - name: Upload lockfile
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-lock
+          path: package-lock.json
+          if-no-files-found: ignore
+
+      - name: Create database schema
+        run: npx prisma db push --skip-generate
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Start server
+        run: |
+          npm run start > server.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:3000/api/health > /dev/null; then echo "Server is up"; exit 0; fi
+            sleep 1
+          done
+          echo "Server did not start"; cat server.log; exit 1
+
+      - name: End-to-end smoke test
+        run: npm run smoke
+        env:
+          BASE_URL: http://localhost:3000
+
+      - name: Server log
+        if: always()
+        run: cat server.log || true

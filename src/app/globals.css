@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+/*
+  Event-day palette: lanyard blue for actions, ink for text, a cool grey canvas,
+  and three stage colours that match the physical counters (entry, food, goodies).
+*/
+@theme {
+  --color-canvas: #eef1f5;
+  --color-surface: #ffffff;
+  --color-ink: #17202e;
+  --color-muted: #5b6577;
+  --color-line: #d8dee8;
+  --color-lanyard: #2b4acb;
+  --color-lanyard-dark: #1f379b;
+  --color-lanyard-soft: #e5eafb;
+  --color-ok: #15803d;
+  --color-ok-soft: #dcf3e4;
+  --color-bad: #c2410c;
+  --color-bad-soft: #fde6da;
+  --color-warn: #a16207;
+  --color-warn-soft: #fbf0cf;
+  --color-stage-entry: #2b4acb;
+  --color-stage-food: #b45309;
+  --color-stage-goodies: #8b3fbf;
+
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-heading), var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+
+html {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100dvh;
+  font-family: var(--font-sans);
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-lanyard);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Ticket stub: perforated edge between the event half and the QR half. */
+.ticket-perforation {
+  position: relative;
+  height: 0;
+  border-top: 2px dashed var(--color-line);
+  margin: 0 18px;
+}
+.ticket-perforation::before,
+.ticket-perforation::after {
+  content: "";
+  position: absolute;
+  top: -15px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-canvas);
+}
+.ticket-perforation::before {
+  left: -33px;
+}
+.ticket-perforation::after {
+  right: -33px;
+}
+
+/* Scanner verdict: one deliberate motion moment. */
+@keyframes verdict-in {
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.verdict-in {
+  animation: verdict-in 160ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .verdict-in {
+    animation: none;
+  }
+}
+
+#qr-reader video {
+  border-radius: 12px;
+  object-fit: cover;
+}
