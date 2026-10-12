@@ -121,7 +121,7 @@ async function main() {
   expectStatus(r1, 201, "register p1");
   const pass1 = r1.data.pass;
   assert.equal(pass1.employeeId, `E${uid}1`, "employee ID upper-cased");
-  assert.equal(pass1.employeeEmail, `asha.${uid}@example.com`, "email lower-cased");
+  assert.equal(pass1.employeeEmail, `asha.${uid.toLowerCase()}@example.com`, "email lower-cased");
   assert.ok(pass1.qrToken.length >= 20);
   assert.ok(["LOGGED", "SENT"].includes(pass1.emailStatus), `email status ${pass1.emailStatus}`);
   ok("participant registered and got a QR pass");
