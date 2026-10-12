@@ -75,10 +75,20 @@ jobs:
           echo "Server did not start"; cat server.log; exit 1
 
       - name: End-to-end smoke test
-        run: npm run smoke
+        run: npm run smoke 2>&1 | tee smoke.log; exit ${PIPESTATUS[0]}
         env:
           BASE_URL: http://localhost:3000
 
       - name: Server log
         if: always()
         run: cat server.log || true
+
+      # Surface failures as annotations so they're readable from the checks API.
+      - name: Annotate failure
+        if: failure()
+        run: |
+          annotate() { local title="$1" file="$2"; [ -f "$file" ] || return 0
+            local body; body=$(tail -n 60 "$file" | sed -e 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}')
+            echo "::error title=$title::$body"; }
+          annotate "Smoke test output" smoke.log
+          annotate "Server log" server.log
